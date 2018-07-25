@@ -62,7 +62,7 @@ import { isNewSite } from 'state/sites/selectors';
 import { getSelectedSite, getSelectedSiteId, getSelectedSiteSlug } from 'state/ui/selectors';
 import { getCurrentUserCountryCode } from 'state/current-user/selectors';
 import { canAddGoogleApps } from 'lib/domains';
-import { getDomainNameFromReceiptOrCart } from 'lib/domains/utils';
+import { getDomainNameFromReceiptOrCart } from 'lib/domains/cart-utils';
 import { fetchSitesAndUser } from 'lib/signup/step-actions';
 import { loadTrackingTool } from 'state/analytics/actions';
 import { getProductsList, isProductsListFetching } from 'state/products-list/selectors';
@@ -296,7 +296,13 @@ export class Checkout extends React.Component {
 
 	getCheckoutCompleteRedirectPath = () => {
 		let renewalItem;
-		const { cart, selectedSiteSlug, transaction: { step: { data: receipt } } } = this.props;
+		const {
+			cart,
+			selectedSiteSlug,
+			transaction: {
+				step: { data: receipt },
+			},
+		} = this.props;
 		const domainReceiptId = get(
 			cartItems.getGoogleApps( cart ),
 			'[0].extra.receipt_for_domain',
@@ -364,7 +370,7 @@ export class Checkout extends React.Component {
 		return this.props.selectedFeature && isValidFeatureKey( this.props.selectedFeature )
 			? `/checkout/thank-you/features/${
 					this.props.selectedFeature
-				}/${ selectedSiteSlug }/${ receiptId }`
+			  }/${ selectedSiteSlug }/${ receiptId }`
 			: `/checkout/thank-you/${ selectedSiteSlug }/${ receiptId }`;
 	};
 
@@ -380,7 +386,9 @@ export class Checkout extends React.Component {
 			isDomainOnly,
 			reduxStore,
 			selectedSiteId,
-			transaction: { step: { data: receipt } },
+			transaction: {
+				step: { data: receipt },
+			},
 			translate,
 		} = this.props;
 		const redirectPath = this.getCheckoutCompleteRedirectPath();
