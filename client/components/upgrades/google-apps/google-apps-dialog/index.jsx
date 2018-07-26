@@ -10,6 +10,7 @@ import ReactCSSTransitionGroup from 'react-transition-group/CSSTransitionGroup';
 import { localize } from 'i18n-calypso';
 import { connect } from 'react-redux';
 import { get } from 'lodash';
+import classnames from 'classnames';
 
 /**
  * Internal dependencies
@@ -28,6 +29,7 @@ import { recordTracksEvent, recordGoogleEvent, composeAnalytics } from 'state/an
 import { getCurrentUserCurrencyCode } from 'state/current-user/selectors';
 import QueryProducts from 'components/data/query-products-list';
 import { getProductsList } from 'state/products-list/selectors';
+import formatCurrency from 'lib/format-currency';
 
 class GoogleAppsDialog extends React.Component {
 	static propTypes = {
@@ -38,6 +40,11 @@ class GoogleAppsDialog extends React.Component {
 		onGoBack: PropTypes.func,
 		analyticsSection: PropTypes.string,
 		initialGoogleAppsCartItem: PropTypes.object,
+		showDiscount: PropTypes.bool.isRequired,
+	};
+
+	static defaultProps = {
+		showDiscount: false,
 	};
 
 	state = {
@@ -46,7 +53,7 @@ class GoogleAppsDialog extends React.Component {
 		validationErrors: null,
 	};
 
-	componentWillMount() {
+	UNSAFE_componentWillMount() {
 		if ( this.props.initialState ) {
 			this.setState( this.props.initialState );
 		}
@@ -56,11 +63,32 @@ class GoogleAppsDialog extends React.Component {
 		this.setState( { validationErrors: null } );
 	}
 
-	render() {
+	getPrices() {
 		const { currencyCode, productsList } = this.props;
 		const price = get( productsList, [ 'gapps', 'prices', currencyCode ], 0 );
-		const annualPrice = getAnnualPrice( price, currencyCode );
-		const monthlyPrice = getMonthlyPrice( price, currencyCode );
+		const prices = {
+			annualPrice: getAnnualPrice( price, currencyCode ),
+			monthlyPrice: getMonthlyPrice( price, currencyCode ),
+		};
+		const formatMonthlyPrice = annualPrice => {
+			const monthlyPrice = Math.round( ( annualPrice / 12 ) * 10 ) / 10;
+			return formatCurrency( monthlyPrice, currencyCode );
+		};
+
+		if ( this.props.showDiscount ) {
+			const discountRate = 50;
+			const discountPrice = price * ( 1 - discountRate / 100 );
+			prices.monthlyPrice = formatMonthlyPrice( price );
+			prices.discountAnnualPrice = getAnnualPrice( discountPrice, currencyCode );
+			prices.discountMonthlyPrice = formatMonthlyPrice( discountPrice );
+			prices.discountRate = discountRate;
+		}
+
+		return prices;
+	}
+
+	render() {
+		const prices = this.getPrices();
 
 		return (
 			<form className="google-apps-dialog" onSubmit={ this.handleFormSubmit }>
@@ -68,9 +96,9 @@ class GoogleAppsDialog extends React.Component {
 				<CompactCard>{ this.header() }</CompactCard>
 				<CompactCard>
 					<GoogleAppsProductDetails
+						showDiscount={ this.props.showDiscount }
 						domain={ this.props.domain }
-						monthlyPrice={ monthlyPrice }
-						annualPrice={ annualPrice }
+						{ ...prices }
 					/>
 					<ReactCSSTransitionGroup
 						transitionName="google-apps-dialog__users"
@@ -125,22 +153,29 @@ class GoogleAppsDialog extends React.Component {
 	}
 
 	footer() {
-		const { translate } = this.props;
+		const { translate, showDiscount } = this.props;
 		const continueButtonHandler = this.state.isAddingEmail
 			? this.handleFormSubmit
 			: this.handleAddEmail;
 		const continueButtonText = this.state.isAddingEmail
 			? translate( 'Continue \u00BB' )
 			: translate( 'Yes, Add Email \u00BB' );
+		const skipText = showDiscount
+			? // Do not translate this string as it is a part of an abtest.
+			  "No thanks, I don't need email or I'll use another provider"
+			: translate( 'Skip' );
 
 		return (
 			<footer className="google-apps-dialog__footer">
 				{ ! this.state.isAddingEmail && (
 					<Button
-						className="google-apps-dialog__checkout-button"
+						className={ classnames( 'google-apps-dialog__checkout-button', {
+							'with-discount': showDiscount,
+						} ) }
 						onClick={ this.handleFormCheckout }
+						borderless={ this.props.showDiscount }
 					>
-						{ translate( 'Skip' ) }
+						{ skipText }
 					</Button>
 				) }
 				<Button
