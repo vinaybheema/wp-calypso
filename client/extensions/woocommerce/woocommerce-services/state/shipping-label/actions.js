@@ -16,7 +16,6 @@ import {
 	includes,
 	isBoolean,
 	isEqual,
-	isNil,
 	map,
 	noop,
 	pick,
@@ -42,7 +41,6 @@ import {
 	shouldFulfillOrder,
 	shouldEmailDetails,
 	isCustomsFormRequired,
-	getProductValueFromOrder,
 } from './selectors';
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { saveOrder } from 'woocommerce/state/sites/orders/actions';
@@ -205,10 +203,6 @@ export const convertToApiPackage = ( pckg, siteId, orderId, state, customsItems 
 				: pckg.restrictionExplanation;
 		apiPckg.abandon_on_non_delivery = Boolean( pckg.abandonOnNonDelivery );
 		apiPckg.itn = pckg.itn || '';
-		const getProductValue = productId =>
-			isNil( customsItems[ productId ].value )
-				? getProductValueFromOrder( state, productId, orderId, siteId )
-				: customsItems[ productId ].value;
 
 		apiPckg.items = uniqBy( pckg.items, 'product_id' ).map( ( { product_id } ) => {
 			const quantity = sumBy( filter( pckg.items, { product_id } ), 'quantity' );
@@ -216,7 +210,7 @@ export const convertToApiPackage = ( pckg, siteId, orderId, state, customsItems 
 			return {
 				description: customsItems[ product_id ].description,
 				quantity,
-				value: quantity * getProductValue( product_id ),
+				value: quantity * customsItems[ product_id ].value,
 				weight: quantity * customsItems[ product_id ].weight,
 				hs_tariff_number: customsItems[ product_id ].tariffNumber,
 				origin_country: customsItems[ product_id ].originCountry,
