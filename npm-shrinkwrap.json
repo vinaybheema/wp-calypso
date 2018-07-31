@@ -1163,6 +1163,23 @@
         "long": "^3.2.0"
       }
     },
+    "@wordpress/api-fetch": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/@wordpress/api-fetch/-/api-fetch-1.0.1.tgz",
+      "integrity": "sha512-kPExW7bJATzjR1zJTYAjsJdRwoapuxEUDTUiz9l++u8b4hODgM6JJpQHDAOULdRlCHkir7L4Sm3KJwwg4WsQ6g==",
+      "requires": {
+        "@babel/runtime": "^7.0.0-beta.52",
+        "@wordpress/i18n": "^1.2.1",
+        "jquery": "^3.3.1"
+      },
+      "dependencies": {
+        "jquery": {
+          "version": "3.3.1",
+          "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.3.1.tgz",
+          "integrity": "sha512-Ubldcmxp5np52/ENotGxlLe6aGMvmF4R8S6tZjsP6Knsaxd/xp3Zrh50cG93lR6nPXyUFwzN3ZSOQI0wRJNdGg=="
+        }
+      }
+    },
     "@wordpress/autop": {
       "version": "1.1.1",
       "resolved": "https://registry.npmjs.org/@wordpress/autop/-/autop-1.1.1.tgz",
